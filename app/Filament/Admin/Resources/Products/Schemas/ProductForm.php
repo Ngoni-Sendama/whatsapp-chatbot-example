@@ -13,23 +13,25 @@ class ProductForm
     {
         return $schema
             ->components([
-               Section::make()
-               ->columnSpanFull()
-               ->columns(2)
-               ->schema([
-                 TextInput::make('name')
-                    ->required(),
-                TextInput::make('price')
-                ->prefix('$')
-                   ->required(),
-                     TextInput::make('description')
-                     ->columnSpanFull()
-                    ->required(),
-                FileUpload::make('image')
-                    ->image()
-                    ->required(),
-               
-               ]),
+                Section::make()
+                    ->columnSpanFull()
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('name')
+                            ->required(),
+                        TextInput::make('price')
+                            ->prefix('$')
+                            ->required(),
+                        TextInput::make('description')
+                            ->columnSpanFull()
+                            ->required(),
+                        FileUpload::make('image')
+                            ->image()
+                            ->disk('public')
+                            ->directory('products')
+                            ->required(),
+
+                    ]),
             ]);
     }
 }

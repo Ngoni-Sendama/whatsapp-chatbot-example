@@ -57,16 +57,18 @@ class FacebookPostService
         }
 
         $post = $response->getPost();
-        $platform = $post?->getPlatforms()[0] ?? null;
+        $platforms = $post?->getPlatforms() ?? [];
+        $platform = $platforms[0] ?? null;
 
-        $url = $platform?->getPlatformPostUrl()
-            ?? $platform?->getPlatformPostId();
+        $url = $platform?->getPlatformPostUrl();
         $status = $platform?->getStatus();
         $error = $platform?->getErrorMessage()
             ?? (method_exists($response, 'getError') ? $response->getError() : null);
 
         return [
-            'success' => $url !== null && ! in_array($status, ['failed', 'error'], true),
+            'success' => $post !== null
+                && $error === null
+                && ($url !== null || $status === 'published'),
             'url' => $url,
             'status' => $status,
             'error' => $error,
