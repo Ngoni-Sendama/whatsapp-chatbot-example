@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\WhatsAppConversations\Schemas;
 
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class WhatsAppConversationInfolist
@@ -11,6 +12,10 @@ class WhatsAppConversationInfolist
     {
         return $schema
             ->components([
+                 Section::make()
+                ->columnSpanFull()
+                ->columns(2)
+                ->schema([
                 TextEntry::make('phone'),
                 TextEntry::make('profile_name')
                     ->placeholder('-'),
@@ -35,6 +40,7 @@ class WhatsAppConversationInfolist
                 TextEntry::make('updated_at')
                     ->dateTime()
                     ->placeholder('-'),
+                    ])
             ]);
     }
 }
