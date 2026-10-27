@@ -102,7 +102,7 @@ class WhatsAppBotController extends Controller
         }
 
         if ($conversation->status === WhatsAppConversation::STATUS_COMPLETED) {
-            return 'Thank you! We have received your request and will get back to you soon.';
+            return 'Thank you! We have received your request and will get back to you soon. Chimwata A Investments - 0773355211';
         }
 
         return 'Hi! Which product are you interested in?';
