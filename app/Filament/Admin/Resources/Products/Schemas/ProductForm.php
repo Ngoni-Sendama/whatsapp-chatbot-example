@@ -29,7 +29,7 @@ class ProductForm
                     ->image()
                     ->required(),
                
-               ])
+               ]),
             ]);
     }
 }

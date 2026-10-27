@@ -29,7 +29,11 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($products as $product) {
+            $product['slug'] = Str::slug($product['name']);
             Product::updateOrCreate(
                 ['name' => $product['name']],
                 $product
-     
+            );
+        }
+    }
+}
