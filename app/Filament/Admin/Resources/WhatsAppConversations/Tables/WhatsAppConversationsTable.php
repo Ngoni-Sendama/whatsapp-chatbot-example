@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\WhatsAppConversations\Tables;
 
+use App\Models\WhatsAppConversation;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -18,31 +19,28 @@ class WhatsAppConversationsTable
                 TextColumn::make('phone')
                     ->searchable(),
                 TextColumn::make('profile_name')
-                    ->searchable(),
-                TextColumn::make('product.name')
-                    ->searchable(),
+                    ->searchable()
+                    ->placeholder('-'),
                 TextColumn::make('product_name')
-                    ->searchable(),
-                TextColumn::make('price')
-                    ->searchable(),
+                    ->label('Product')
+                    ->searchable()
+                    ->placeholder('-'),
                 TextColumn::make('quantity')
-                    ->searchable(),
+                    ->searchable()
+                    ->placeholder('-'),
                 TextColumn::make('location')
-                    ->searchable(),
+                    ->searchable()
+                    ->placeholder('-'),
                 TextColumn::make('status')
-                    ->searchable(),
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => WhatsAppConversation::statusLabel($state))
+                    ->color(fn (?string $state): string => WhatsAppConversation::statusColor($state))
+                    ->sortable(),
                 TextColumn::make('last_message_at')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('last_message_at', 'desc')
             ->filters([
                 //
             ])

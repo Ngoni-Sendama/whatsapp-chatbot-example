@@ -38,4 +38,24 @@ class WhatsAppConversation extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public static function statusLabel(?string $status): string
+    {
+        return match ($status) {
+            self::STATUS_AWAITING_QUANTITY => 'Awaiting quantity',
+            self::STATUS_AWAITING_LOCATION => 'Awaiting location',
+            self::STATUS_COMPLETED => 'Completed',
+            default => ucfirst((string) $status),
+        };
+    }
+
+    public static function statusColor(?string $status): string
+    {
+        return match ($status) {
+            self::STATUS_AWAITING_QUANTITY => 'warning',
+            self::STATUS_AWAITING_LOCATION => 'info',
+            self::STATUS_COMPLETED => 'success',
+            default => 'gray',
+        };
+    }
 }
