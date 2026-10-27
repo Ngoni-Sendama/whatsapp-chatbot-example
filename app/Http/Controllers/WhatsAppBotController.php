@@ -102,7 +102,7 @@ class WhatsAppBotController extends Controller
                 'location' => $conversation->location,
             ]);
 
-            return "Thank you! We have your order for {$conversation->quantity} x {$conversation->product_name} in {$conversation->location}. We will get back to you soon.";
+            return "Thank you! We have your order for {$conversation->quantity} x {$conversation->product_name} in {$conversation->location}. We will get back to you soon. Chimwata A Investments - 0773355211";
         }
 
         if ($conversation->status === WhatsAppConversation::STATUS_COMPLETED) {
