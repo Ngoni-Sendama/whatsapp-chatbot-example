@@ -3,16 +3,15 @@
 namespace App\Filament\Admin\Resources\Posts\Pages;
 
 use App\Filament\Admin\Resources\Posts\PostResource;
-use App\Models\Product;
 use App\Models\Post;
+use App\Models\Product;
 use App\Services\FacebookPostService;
 use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\Facades\Storage;
 
 class ListPosts extends ListRecords
 {
@@ -21,69 +20,94 @@ class ListPosts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            // CreateAction::make(),
-              Action::make('create-post')
-              ->label('Generate Post')
-              ->modal()
-              ->color('success')
-              ->schema([
-        Select::make('product_id')
-            ->required()
-            ->searchable()
-            ->options(Product::query()->pluck('name', 'id'))
-            ->label('Select Produt'),
-            Radio::make('post_type')
-            ->inlineLabel()
-            ->inline()
-            ->options([
-                'with_image'=>'With Image',
-                'without_image'=>'Without Image',
-            ])->default('without_image'),
+            Action::make('create-post')
+                ->label('Generate Post')
+                ->modal()
+                ->color('success')
+                ->schema([
+                    Select::make('product_id')
+                        ->required()
+                        ->searchable()
+                        ->options(Product::query()->pluck('name', 'id'))
+                        ->label('Select Product'),
+                    Radio::make('post_type')
+                        ->inlineLabel()
+                        ->inline()
+                        ->options([
+                            'with_image' => 'With Image',
+                            'without_image' => 'Without Image',
+                        ])->default('without_image'),
+                ])
+                ->action(function (array $data) {
+                    try {
+                        $product = Product::find($data['product_id']);
 
-    ])
-        ->action(function (array $data) {
-            try {
-                $product = Product::find($data['product_id']);
+                        if (! $product) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Error')
+                                ->body('Product not found')
+                                ->send();
 
-                if (!$product) {
-                    Notification::make()
-                        ->danger()
-                        ->title('Error')
-                        ->body('Product not found')
-                        ->send();
-                    return;
-                }
+                            return;
+                        }
 
-                $facebookService = new FacebookPostService();
+                        $content = $this->generatePostContent($product);
 
-                $imageUrl = ($data['post_type'] === 'with_image') ? $product->image : null;
+                        $imageUrl = ($data['post_type'] === 'with_image')
+                            ? $this->publicImageUrl($product->image)
+                            : null;
 
-                $response = $facebookService->postToFacebook(
-                    content: $this->generatePostContent($product),
-                    imageUrl: $imageUrl
-                );
+                        $result = app(FacebookPostService::class)->postToFacebook(
+                            content: $content,
+                            imageUrl: $imageUrl,
+                        );
 
-                Post::create([
-                    'product_id' => $product->id,
-                    'content' => $this->generatePostContent($product),
-                    'facebook_url' => $response['url'] ?? null,
-                    'status' => 'posted',
-                ]);
+                        Post::create([
+                            'product_id' => $product->id,
+                            'content' => $content,
+                            'facebook_url' => $result['url'] ?? null,
+                            'status' => $result['success'] ? 'posted' : 'failed',
+                            'error_message' => $result['error'] ?? null,
+                        ]);
 
-                Notification::make()
-                    ->success()
-                    ->title('Success')
-                    ->body('Post created successfully!')
-                    ->send();
-            } catch (\Exception $e) {
-                Notification::make()
-                    ->danger()
-                    ->title('Error')
-                    ->body($e->getMessage())
-                    ->send();
-            }
-        }),
+                        if (! $result['success']) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Facebook publish failed')
+                                ->body($result['error'] ?? 'The post was created but Facebook did not return a published URL.')
+                                ->send();
+
+                            return;
+                        }
+
+                        Notification::make()
+                            ->success()
+                            ->title('Success')
+                            ->body('Post published to Facebook!')
+                            ->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()
+                            ->danger()
+                            ->title('Error')
+                            ->body($e->getMessage())
+                            ->send();
+                    }
+                }),
         ];
+    }
+
+    private function publicImageUrl(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return Storage::disk('public')->url($path);
     }
 
     private function generatePostContent(Product $product): string
