@@ -32,7 +32,7 @@ class ProductInfolist
                ->columnSpanFull()
                ->columns(2)
                ->schema([
-                      ImageEntry::make('image') ,
+                      ImageEntry::make('image')->disk('public') ,
                          ])->columnSpan(['lg' => 1]),
             ])->columns(2);
     }
