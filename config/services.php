@@ -44,6 +44,12 @@ return [
         'number' => env('WHATSAPP_NUMBER'),
     ],
 
+    'twilio' => [
+        'account_sid' => env('TWILIO_ACCOUNT_SID'),
+        'auth_token' => env('TWILIO_AUTH_TOKEN'),
+        'validate_signature' => env('TWILIO_VALIDATE_SIGNATURE', false),
+    ],
+
     'groq' => [
         'api_key' => env('GROQ_API_KEY'),
     ],
