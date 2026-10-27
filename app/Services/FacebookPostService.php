@@ -2,39 +2,51 @@
 
 namespace App\Services;
 
-use ZernioDev\Zernio\Zernio;
+use Zernio\Api\PostsApi;
+use Zernio\Configuration;
+use Zernio\Model\CreatePostRequest;
+use Zernio\Model\CreatePostRequestMedia;
 
 class FacebookPostService
 {
-    private $zernio;
+    private $postsApi;
     private $accountId;
 
     public function __construct()
     {
-        $this->zernio = new Zernio(config('services.zernio.api_key'));
+        $config = Configuration::getDefaultConfiguration();
+        $config->setAccessToken(config('services.zernio.api_key'));
+
+        $this->postsApi = new PostsApi(null, $config);
         $this->accountId = config('services.zernio.account_id');
     }
 
     public function postToFacebook(string $content, ?string $imageUrl = null): array
     {
-        $payload = [
-            'accountId' => $this->accountId,
-            'platform' => 'facebook',
-            'text' => $content,
-        ];
+        try {
+            $request = new CreatePostRequest([
+                'account_id' => $this->accountId,
+                'platform' => 'facebook',
+                'text' => $content,
+            ]);
 
-        if ($imageUrl) {
-            $payload['media'] = [
-                ['type' => 'image', 'url' => $imageUrl]
+            if ($imageUrl) {
+                $media = new CreatePostRequestMedia([
+                    'type' => 'image',
+                    'url' => $imageUrl,
+                ]);
+                $request->setMedia([$media]);
+            }
+
+            $response = $this->postsApi->createPost($request);
+
+            return [
+                'success' => true,
+                'url' => $response['url'] ?? null,
+                'response' => $response,
             ];
+        } catch (\Exception $e) {
+            throw $e;
         }
-
-        $response = $this->zernio->posts()->create($payload);
-
-        return [
-            'success' => true,
-            'url' => $response['url'] ?? null,
-            'response' => $response,
-        ];
     }
 }
