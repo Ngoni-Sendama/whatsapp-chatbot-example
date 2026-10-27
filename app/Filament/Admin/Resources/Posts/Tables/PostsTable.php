@@ -15,7 +15,7 @@ class PostsTable
     {
         return $table
             ->columns([
-                TextColumn::make('product_id')
+                TextColumn::make('product.name')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('facebook_url')
