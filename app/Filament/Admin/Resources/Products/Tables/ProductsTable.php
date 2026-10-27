@@ -21,7 +21,7 @@ class ProductsTable
                 TextColumn::make('price')
                 ->money('USD')
                     ->searchable(),
-                ImageColumn::make('image'),
+                ImageColumn::make('image')->disk('public'),
                 TextColumn::make('description')
                     ->searchable(),
                 TextColumn::make('created_at')
