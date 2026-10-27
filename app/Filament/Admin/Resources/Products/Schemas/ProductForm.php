@@ -29,6 +29,7 @@ class ProductForm
                             ->image()
                             ->disk('public')
                             ->directory('products')
+                            ->visibility('public')
                             ->required(),
 
                     ]),

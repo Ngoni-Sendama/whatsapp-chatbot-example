@@ -6,12 +6,12 @@ use App\Filament\Admin\Resources\Posts\PostResource;
 use App\Models\Post;
 use App\Models\Product;
 use App\Services\FacebookPostService;
+use App\Services\ProductPostContentService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Support\Facades\Storage;
 
 class ListPosts extends ListRecords
 {
@@ -52,11 +52,21 @@ class ListPosts extends ListRecords
                             return;
                         }
 
-                        $content = $this->generatePostContent($product);
-
                         $imageUrl = ($data['post_type'] === 'with_image')
-                            ? $this->publicImageUrl($product->image)
+                            ? $product->image_url
                             : null;
+
+                        if ($data['post_type'] === 'with_image' && ! $imageUrl) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Image not found')
+                                ->body('The product image is missing from the public disk. Re-upload the product image and try again.')
+                                ->send();
+
+                            return;
+                        }
+
+                        $content = app(ProductPostContentService::class)->generate($product);
 
                         $result = app(FacebookPostService::class)->postToFacebook(
                             content: $content,
@@ -95,51 +105,5 @@ class ListPosts extends ListRecords
                     }
                 }),
         ];
-    }
-
-    private function publicImageUrl(?string $path): ?string
-    {
-        if (! $path) {
-            return null;
-        }
-
-        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
-            return $path;
-        }
-
-        return Storage::disk('public')->url($path);
-    }
-
-    private function whatsappUrl(Product $product): ?string
-    {
-        $number = preg_replace('/\D+/', '', (string) config('services.whatsapp.number'));
-
-        if (! $number) {
-            return null;
-        }
-
-        $message = "Hi, I'm interested in {$product->name} ({$product->price}).";
-
-        return "https://wa.me/{$number}?text=".rawurlencode($message);
-    }
-
-    private function generatePostContent(Product $product): string
-    {
-        $content = <<<EOT
-🎉 Check out this amazing product! 🎉
-
-📦 {$product->name}
-💰 Price: {$product->price}
-
-{$product->description}
-
-Shop now and enjoy great deals!
-EOT;
-
-        if ($whatsappUrl = $this->whatsappUrl($product)) {
-            $content .= "\n\n📲 Order on WhatsApp: {$whatsappUrl}";
-        }
-
-        return $content;
     }
 }

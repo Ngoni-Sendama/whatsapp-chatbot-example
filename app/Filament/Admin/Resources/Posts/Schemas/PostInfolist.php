@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Posts\Schemas;
 
 use App\Models\Post;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class PostInfolist
@@ -12,8 +13,11 @@ class PostInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('product_id')
-                    ->numeric(),
+               Section::make()
+               ->columnSpanFull()
+               ->columns(2)
+               ->schema([
+                 TextEntry::make('product.name'),
                 TextEntry::make('content')
                     ->placeholder('-')
                     ->columnSpanFull(),
@@ -31,6 +35,7 @@ class PostInfolist
                 TextEntry::make('updated_at')
                     ->dateTime()
                     ->placeholder('-'),
+               ])
             ]);
     }
 }

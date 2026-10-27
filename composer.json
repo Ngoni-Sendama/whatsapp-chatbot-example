@@ -11,6 +11,7 @@
         "laravel/ai": "^1.3",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
+        "twilio/sdk": "^8.13",
         "zernio-dev/zernio-php": "^0.0.1413"
     },
     "require-dev": {
