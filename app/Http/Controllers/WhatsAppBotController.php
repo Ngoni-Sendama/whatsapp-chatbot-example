@@ -174,6 +174,12 @@ class WhatsAppBotController extends Controller
             return;
         }
 
+        if (! class_exists(RequestValidator::class)) {
+            Log::error('Twilio signature validation is enabled but the Twilio SDK is not installed. Run composer install.');
+
+            return;
+        }
+
         $signature = (string) $request->header('X-Twilio-Signature', '');
         $validator = new RequestValidator($authToken);
 
@@ -186,9 +192,17 @@ class WhatsAppBotController extends Controller
 
     private function twiml(string $message): Response
     {
-        $response = new MessagingResponse;
-        $response->message($message);
+        if (class_exists(MessagingResponse::class)) {
+            $response = new MessagingResponse;
+            $response->message($message);
+            $xml = (string) $response;
+        } else {
+            $xml = '<?xml version="1.0" encoding="UTF-8"?>'
+                .'<Response><Message>'
+                .htmlspecialchars($message, ENT_XML1 | ENT_QUOTES, 'UTF-8')
+                .'</Message></Response>';
+        }
 
-        return response((string) $response, 200)->header('Content-Type', 'text/xml');
+        return response($xml, 200)->header('Content-Type', 'text/xml');
     }
 }
