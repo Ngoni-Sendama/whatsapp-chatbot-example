@@ -19,6 +19,7 @@ class ProductsTable
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('price')
+                ->money('USD')
                     ->searchable(),
                 ImageColumn::make('image'),
                 TextColumn::make('description')
