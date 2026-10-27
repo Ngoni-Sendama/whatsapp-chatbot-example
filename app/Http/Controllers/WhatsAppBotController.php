@@ -56,7 +56,7 @@ class WhatsAppBotController extends Controller
         if ($inquiry !== null) {
             $this->startInquiry($conversation, $inquiry['name'], $inquiry['price']);
 
-            return "Great choice! How many units of {$conversation->product_name} would you like?";
+            return $this->quantityPrompt($conversation);
         }
 
         if ($conversation->status === WhatsAppConversation::STATUS_AWAITING_QUANTITY) {
@@ -66,28 +66,32 @@ class WhatsAppBotController extends Controller
                 if ($product !== null) {
                     $this->startInquiry($conversation, $product->name, (string) $product->price);
 
-                    return "Great choice! How many units of {$conversation->product_name} would you like?";
+                    return $this->quantityPrompt($conversation);
                 }
 
                 return 'Hi! Which product are you interested in?';
             }
 
-            if ($body === '') {
-                return 'Please reply with the quantity you would like.';
+            $quantity = $this->parseQuantity($body);
+
+            if ($quantity === null) {
+                return $this->quantityPrompt($conversation);
             }
 
-            $conversation->quantity = $body;
+            $conversation->quantity = $quantity;
             $conversation->status = WhatsAppConversation::STATUS_AWAITING_LOCATION;
 
             return 'Thanks! Where are you located?';
         }
 
         if ($conversation->status === WhatsAppConversation::STATUS_AWAITING_LOCATION) {
-            if ($body === '') {
-                return 'Please reply with your location.';
+            $location = $this->parseLocation($body);
+
+            if ($location === null) {
+                return 'Please send your location (city or suburb).';
             }
 
-            $conversation->location = $body;
+            $conversation->location = $location;
             $conversation->status = WhatsAppConversation::STATUS_COMPLETED;
 
             Log::info('WhatsApp bot order completed.', [
@@ -106,6 +110,53 @@ class WhatsAppBotController extends Controller
         }
 
         return 'Hi! Which product are you interested in?';
+    }
+
+    private function quantityPrompt(WhatsAppConversation $conversation): string
+    {
+        return "How many units of {$conversation->product_name} would you like?\n\n"
+            ."1. 1 unit\n"
+            ."2. 2 units\n"
+            ."3. 3 units\n"
+            ."4. 4 units\n\n"
+            .'Reply with 1, 2, 3, or 4.';
+    }
+
+    private function parseQuantity(string $body): ?string
+    {
+        if (preg_match('/^([1-4])(?:\s*(?:unit|units|piece|pieces|pc|pcs))?[.!]?$/i', trim($body), $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    private function parseLocation(string $body): ?string
+    {
+        $location = trim($body);
+
+        if (mb_strlen($location) < 3 || ! preg_match('/\p{L}/u', $location)) {
+            return null;
+        }
+
+        if (in_array(mb_strtolower($location), [
+            'hi',
+            'hie',
+            'hey',
+            'hello',
+            'helo',
+            'yo',
+            'test',
+            'testing',
+            'ok',
+            'okay',
+            'thanks',
+            'thank you',
+        ], true)) {
+            return null;
+        }
+
+        return $location;
     }
 
     /**

@@ -29,7 +29,9 @@ class WhatsAppBotTest extends TestCase
         ])
             ->assertOk()
             ->assertHeader('Content-Type', 'text/xml; charset=utf-8')
-            ->assertSee('How many units of Cudy AC1200 Outdoor Gigabit would you like?', false);
+            ->assertSee('How many units of Cudy AC1200 Outdoor Gigabit would you like?', false)
+            ->assertSee('1. 1 unit', false)
+            ->assertSee('4. 4 units', false);
 
         $this->assertDatabaseHas('whatsapp_conversations', [
             'phone' => $phone,
@@ -39,14 +41,40 @@ class WhatsAppBotTest extends TestCase
 
         $this->post('/webhooks/twilio/whatsapp', [
             'From' => "whatsapp:{$phone}",
-            'Body' => '3',
+            'Body' => 'hie',
+        ])
+            ->assertOk()
+            ->assertSee('How many units of Cudy AC1200 Outdoor Gigabit would you like?', false);
+
+        $this->assertDatabaseHas('whatsapp_conversations', [
+            'phone' => $phone,
+            'quantity' => null,
+            'status' => 'awaiting_quantity',
+        ]);
+
+        $this->post('/webhooks/twilio/whatsapp', [
+            'From' => "whatsapp:{$phone}",
+            'Body' => '2 units',
         ])
             ->assertOk()
             ->assertSee('Where are you located?', false);
 
         $this->assertDatabaseHas('whatsapp_conversations', [
             'phone' => $phone,
-            'quantity' => '3',
+            'quantity' => '2',
+            'status' => 'awaiting_location',
+        ]);
+
+        $this->post('/webhooks/twilio/whatsapp', [
+            'From' => "whatsapp:{$phone}",
+            'Body' => 'hie',
+        ])
+            ->assertOk()
+            ->assertSee('Please send your location (city or suburb).', false);
+
+        $this->assertDatabaseHas('whatsapp_conversations', [
+            'phone' => $phone,
+            'location' => null,
             'status' => 'awaiting_location',
         ]);
 
@@ -59,7 +87,7 @@ class WhatsAppBotTest extends TestCase
 
         $this->assertDatabaseHas('whatsapp_conversations', [
             'phone' => $phone,
-            'quantity' => '3',
+            'quantity' => '2',
             'location' => 'Harare',
             'status' => 'completed',
         ]);
