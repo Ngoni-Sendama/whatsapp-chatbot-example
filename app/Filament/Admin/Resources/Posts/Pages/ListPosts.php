@@ -110,9 +110,22 @@ class ListPosts extends ListRecords
         return Storage::disk('public')->url($path);
     }
 
+    private function whatsappUrl(Product $product): ?string
+    {
+        $number = preg_replace('/\D+/', '', (string) config('services.whatsapp.number'));
+
+        if (! $number) {
+            return null;
+        }
+
+        $message = "Hi, I'm interested in {$product->name} ({$product->price}).";
+
+        return "https://wa.me/{$number}?text=".rawurlencode($message);
+    }
+
     private function generatePostContent(Product $product): string
     {
-        return <<<EOT
+        $content = <<<EOT
 🎉 Check out this amazing product! 🎉
 
 📦 {$product->name}
@@ -122,5 +135,11 @@ class ListPosts extends ListRecords
 
 Shop now and enjoy great deals!
 EOT;
+
+        if ($whatsappUrl = $this->whatsappUrl($product)) {
+            $content .= "\n\n📲 Order on WhatsApp: {$whatsappUrl}";
+        }
+
+        return $content;
     }
 }

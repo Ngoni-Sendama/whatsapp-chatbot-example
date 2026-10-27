@@ -40,6 +40,10 @@ return [
         'account_id' => env('ZERNIO_ACCOUNT_ID'),
     ],
 
+    'whatsapp' => [
+        'number' => env('WHATSAPP_NUMBER'),
+    ],
+
     'groq' => [
         'api_key' => env('GROQ_API_KEY'),
     ],

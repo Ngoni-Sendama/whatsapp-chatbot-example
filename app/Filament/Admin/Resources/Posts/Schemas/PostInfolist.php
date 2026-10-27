@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Posts\Schemas;
 
+use App\Models\Post;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
@@ -18,7 +19,9 @@ class PostInfolist
                     ->columnSpanFull(),
                 TextEntry::make('facebook_url')
                     ->placeholder('-'),
-                TextEntry::make('status'),
+                TextEntry::make('status')
+                    ->badge()
+                    ->color(fn (?string $state): string => Post::statusColor($state)),
                 TextEntry::make('error_message')
                     ->placeholder('-')
                     ->columnSpanFull(),

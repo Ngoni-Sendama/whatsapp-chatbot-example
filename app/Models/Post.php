@@ -12,4 +12,14 @@ class Post extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public static function statusColor(?string $status): string
+    {
+        return match ($status) {
+            'posted' => 'success',
+            'failed' => 'danger',
+            'pending' => 'warning',
+            default => 'gray',
+        };
+    }
 }

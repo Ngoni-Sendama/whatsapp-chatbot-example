@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Posts\Tables;
 
+use App\Models\Post;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -19,8 +20,14 @@ class PostsTable
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('facebook_url')
+                    ->label('Facebook Post')
+                    ->url(fn (Post $record): ?string => $record->facebook_url)
+                    ->openUrlInNewTab()
+                    ->icon('heroicon-o-arrow-top-right-on-square')
                     ->searchable(),
                 TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (?string $state): string => Post::statusColor($state))
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
