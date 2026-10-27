@@ -40,4 +40,8 @@ return [
         'account_id' => env('ZERNIO_ACCOUNT_ID'),
     ],
 
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+    ],
+
 ];
